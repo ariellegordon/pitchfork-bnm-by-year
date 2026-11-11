@@ -12,15 +12,30 @@ type Scope = Category | "both";
 
 const CATEGORY_LABEL: Record<Category, string> = { album: "Best New Albums", reissue: "Best New Reissues" };
 
-function Segmented<T extends string>({ value, options, onChange, label }: {
+function Pills<T extends string>({ value, options, onChange, label }: {
   value: T; options: [T, string][]; onChange: (v: T) => void; label: string;
 }) {
   return (
-    <div className="segmented" role="radiogroup" aria-label={label}>
+    <div className="pills" role="radiogroup" aria-label={label}>
       {options.map(([v, text]) => (
-        <button key={v} role="radio" aria-checked={value === v} onClick={() => onChange(v)}>{text}</button>
+        <button key={v} className="pill" role="radio" aria-checked={value === v} onClick={() => onChange(v)}>{text}</button>
       ))}
     </div>
+  );
+}
+
+function Masthead() {
+  return (
+    <header className="masthead">
+      <div className="masthead-bar">
+        <span className="wordmark">BNM by Year</span>
+        <span className="masthead-meta">Unofficial · data from pitchfork.com</span>
+      </div>
+      <nav className="subnav" aria-label="Source pages">
+        <a href="https://pitchfork.com/reviews/best/albums/" target="_blank" rel="noreferrer">Best New Albums</a>
+        <a href="https://pitchfork.com/reviews/best/reissues/" target="_blank" rel="noreferrer">Best New Reissues</a>
+      </nav>
+    </header>
   );
 }
 
@@ -45,7 +60,7 @@ export default function App() {
     if (view === "category") {
       const cats = (["album", "reissue"] as Category[]).filter((c) => showCat[c]);
       const series: Series[] = cats.map((c) => ({
-        key: c, label: CATEGORY_LABEL[c], color: theme.series[c === "album" ? 0 : 1],
+        key: c, label: CATEGORY_LABEL[c], color: theme.category[c === "album" ? 0 : 1],
       }));
       return { series, rows: countByYear(filtered, years, cats, (a) => [a.category]) };
     }
@@ -66,107 +81,122 @@ export default function App() {
     return { ...t, peak };
   }, [filtered, years]);
 
-  if (error) return <main className="page"><p className="error">{error}</p></main>;
-  if (!data) return <main className="page"><p className="muted">Loading…</p></main>;
+  if (error || !data) {
+    return (
+      <div className="site">
+        <Masthead />
+        <main className="page"><p className={error ? "error" : "dek"}>{error ?? "Loading…"}</p></main>
+      </div>
+    );
+  }
 
   const visibleRows = [...rows].reverse();
 
   return (
-    <main className="page">
-      <header>
-        <h1>Pitchfork Best New Music by year</h1>
-        <p className="muted">
-          Counted by the year Pitchfork published the review. Data scraped{" "}
-          {new Date(data.scrapedAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}.
-        </p>
-      </header>
+    <div className="site">
+      <Masthead />
 
-      <section className="filters" aria-label="Filters">
-        <GenreFilter genres={chipGenres} selected={genres} onChange={setGenres} />
-      </section>
-
-      <section className="tiles">
-        <Tile label="Best New Albums" value={totals.album.toLocaleString()} />
-        <Tile label="Best New Reissues" value={totals.reissue.toLocaleString()} />
-        <Tile
-          label="Peak year for albums"
-          value={totals.peak ? String(totals.peak.year) : "—"}
-          sub={totals.peak ? `${totals.peak.count} albums` : undefined}
-        />
-      </section>
-
-      <section className="card">
-        <div className="card-head">
-          <h2>{view === "category" ? "Picks per year" : "Picks per year by genre"}</h2>
-          <div className="controls">
-            <Segmented label="View" value={view} onChange={setView}
-              options={[["category", "By category"], ["genre", "By genre"]]} />
-            {view === "genre" && (
-              <Segmented label="Category" value={scope} onChange={setScope}
-                options={[["album", "Albums"], ["reissue", "Reissues"], ["both", "Both"]]} />
-            )}
-          </div>
-        </div>
-
-        <div className="legend">
-          {view === "category"
-            ? (["album", "reissue"] as Category[]).map((c, i) => (
-                <label key={c} className="legend-item toggle">
-                  <input type="checkbox" checked={showCat[c]}
-                    onChange={(e) => setShowCat({ ...showCat, [c]: e.target.checked })} />
-                  <span className="swatch" style={{ background: theme.series[i] }} />
-                  {CATEGORY_LABEL[c]}
-                </label>
-              ))
-            : series.map((s) => (
-                <span key={s.key} className="legend-item">
-                  <span className="swatch" style={{ background: s.color }} />{s.label}
-                </span>
-              ))}
-        </div>
-
-        {series.length ? <YearChart rows={rows} series={series} stacked={view === "genre"} theme={theme} />
-          : <p className="muted empty">Nothing to show for this selection.</p>}
-
-        {view === "genre" && (
-          <p className="note">
-            A review tagged with several genres counts once in each, so stacked totals can be higher than the number of
-            reviews. “Other” groups the less common genres and reviews with no genre label.
+      <main className="page">
+        <header className="page-head">
+          <h1 className="page-hed">Best New Music by Year</h1>
+          <p className="dek">
+            Every Best New Album and Best New Reissue, counted by the year the review was published.
           </p>
-        )}
+          <p className="pubdate">
+            Updated {new Date(data.scrapedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
+          </p>
+        </header>
 
-        <details className="table-view">
-          <summary>Show as table</summary>
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr><th scope="col">Year</th>{series.map((s) => <th scope="col" key={s.key}>{s.label}</th>)}</tr>
-              </thead>
-              <tbody>
-                {visibleRows.map((r) => (
-                  <tr key={r.year}>
-                    <th scope="row">{r.year}</th>
-                    {series.map((s) => <td key={s.key}>{r[s.key]}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <section className="filters" aria-label="Filter by genre">
+          <GenreFilter genres={chipGenres} selected={genres} onChange={setGenres} />
+        </section>
+
+        <section className="stats">
+          <Stat label="Best New Albums" value={totals.album.toLocaleString()} />
+          <Stat label="Best New Reissues" value={totals.reissue.toLocaleString()} />
+          <Stat
+            label="Peak year for BNMs"
+            value={totals.peak ? String(totals.peak.year) : "—"}
+            sub={totals.peak ? `${totals.peak.count} albums` : undefined}
+          />
+        </section>
+
+        <section className="chart-section">
+          <div className="section-head">
+            <div className="controls">
+              <Pills label="View" value={view} onChange={setView}
+                options={[["category", "By category"], ["genre", "By genre"]]} />
+              {view === "genre" && (
+                <Pills label="Category" value={scope} onChange={setScope}
+                  options={[["album", "Albums"], ["reissue", "Reissues"], ["both", "Both"]]} />
+              )}
+            </div>
           </div>
-        </details>
-      </section>
 
-      <footer className="muted">Source: pitchfork.com/reviews/best/albums and /reviews/best/reissues.</footer>
-    </main>
-  );
-}
+          <div className="legend">
+            {view === "category"
+              ? (["album", "reissue"] as Category[]).map((c, i) => (
+                  <label key={c} className="legend-item toggle">
+                    <input type="checkbox" checked={showCat[c]}
+                      onChange={(e) => setShowCat({ ...showCat, [c]: e.target.checked })} />
+                    <span className="swatch" style={{ background: theme.category[i] }} />
+                    {CATEGORY_LABEL[c]}
+                  </label>
+                ))
+              : series.map((s) => (
+                  <span key={s.key} className="legend-item">
+                    <span className="swatch" style={{ background: s.color }} />{s.label}
+                  </span>
+                ))}
+          </div>
 
-function Tile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="tile">
-      <div className="tile-label">{label}</div>
-      <div className="tile-value">{value}</div>
-      {sub && <div className="tile-sub">{sub}</div>}
+          {series.length ? <YearChart rows={rows} series={series} stacked={view === "genre"} theme={theme} />
+            : <p className="dek empty">Nothing to show for this selection.</p>}
+
+          {view === "genre" && (
+            <p className="note">
+              A review tagged with several genres counts once in each, so stacked totals can be higher than the number of
+              reviews. “Other” groups the less common genres and reviews with no genre label.
+            </p>
+          )}
+
+          <details className="table-view">
+            <summary>Show as table</summary>
+            <div className="table-scroll">
+              <table>
+                <thead>
+                  <tr><th scope="col">Year</th>{series.map((s) => <th scope="col" key={s.key}>{s.label}</th>)}</tr>
+                </thead>
+                <tbody>
+                  {visibleRows.map((r) => (
+                    <tr key={r.year}>
+                      <th scope="row">{r.year}</th>
+                      {series.map((s) => <td key={s.key}>{r[s.key]}</td>)}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <p>
+          An unofficial fan project, not affiliated with Pitchfork. Data from{" "}
+          <a href="https://pitchfork.com/reviews/best/albums/" target="_blank" rel="noreferrer">pitchfork.com</a>.
+        </p>
+      </footer>
     </div>
   );
 }
 
+function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+  return (
+    <div className="stat">
+      <div className="rubric">{label}</div>
+      <div className="stat-value">{value}</div>
+      {sub && <div className="pubdate">{sub}</div>}
+    </div>
+  );
+}
