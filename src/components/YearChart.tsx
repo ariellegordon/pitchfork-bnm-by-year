@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { Row } from "../data.ts";
 import type { Theme } from "../palette.ts";
 
@@ -13,6 +13,8 @@ interface Props {
   series: Series[];
   stacked: boolean;
   theme: Theme;
+  selectedYear?: number | null;
+  onSelectYear?: (year: number) => void;
 }
 
 const R = 4; // rounded data-end radius
@@ -65,12 +67,20 @@ function ChartTooltip({ active, payload, label, series }: any) {
   );
 }
 
-export function YearChart({ rows, series, stacked, theme }: Props) {
+export function YearChart({ rows, series, stacked, theme, selectedYear, onSelectYear }: Props) {
   const stackKeys = stacked ? series.map((s) => s.key) : null;
   return (
-    <div className="chart" role="img" aria-label="Bar chart of counts per year; the same data is in the table below.">
+    <div className="chart" role="img" aria-label="Bar chart of counts per year; the reviews are listed below.">
       <ResponsiveContainer width="100%" height={360}>
-        <BarChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -12 }} barGap={2} barCategoryGap="20%">
+        <BarChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -12 }} barGap={2} barCategoryGap="20%"
+          style={onSelectYear ? { cursor: "pointer" } : undefined}
+          onClick={(state: any) => {
+            const y = Number(state?.activeLabel);
+            if (onSelectYear && Number.isFinite(y)) onSelectYear(y);
+          }}>
+          {selectedYear != null && (
+            <ReferenceArea x1={selectedYear} x2={selectedYear} fill={theme.grid} fillOpacity={0.6} ifOverflow="visible" />
+          )}
           <CartesianGrid vertical={false} stroke={theme.grid} strokeWidth={1} />
           <XAxis
             dataKey="year"

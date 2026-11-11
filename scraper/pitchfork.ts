@@ -65,6 +65,9 @@ function toAlbum(item: any, category: Category): Album {
       ? item.rubric.map((r: any) => String(r?.name ?? "")).filter(Boolean)
       : [],
     score: typeof item.ratingValue?.score === "number" ? item.ratingValue.score : null,
+    reviewers: Array.isArray(item.contributors?.author?.items)
+      ? item.contributors.author.items.map((p: any) => stripMarkup(String(p?.name ?? ""))).filter(Boolean)
+      : [],
   };
 }
 

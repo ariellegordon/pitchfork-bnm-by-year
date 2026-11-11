@@ -10,6 +10,7 @@ export interface Album {
   year: number; // review publish year (UTC)
   genres: string[];
   score: number | null;
+  reviewers: string[]; // review byline(s); empty when the listing has none
 }
 
 export interface DataFile {

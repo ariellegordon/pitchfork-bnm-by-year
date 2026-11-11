@@ -191,13 +191,41 @@ a { color: inherit; }
 .tooltip-row.total { border-top: 1px solid var(--border-story); margin-top: 6px; padding-top: 6px; font-weight: 600; }
 .num { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--heading); }
 
-/* Table view */
-.table-view summary {
-  cursor: pointer; width: fit-content;
+/* Album list */
+.album-list { border-top: 1px solid var(--border); padding-top: 16px; }
+.album-list summary {
+  cursor: pointer; width: fit-content; display: flex; align-items: center; gap: 10px;
   font: 600 12px/1.33 var(--font-sans); text-transform: uppercase; letter-spacing: 0.083em;
   color: var(--heading);
 }
-.table-scroll { overflow-x: auto; margin-top: 16px; }
+.album-list summary::-webkit-details-marker { display: none; }
+.album-list summary::before { content: "▸"; display: inline-block; transition: transform 0.15s; }
+.album-list[open] summary::before { transform: rotate(90deg); }
+.album-list summary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.summary-count { padding: 1px 8px; border-radius: 999px; background: var(--pill); font-variant-numeric: tabular-nums; }
+.album-list[open] .album-list-head { margin-top: 16px; }
+.album-list-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.year-select { display: inline-flex; align-items: center; gap: 10px; }
+.year-select select {
+  font: 600 14px/1.43 var(--font-sans); color: var(--heading); background: var(--surface);
+  border: 1px solid var(--border); border-radius: 2px; padding: 6px 28px 6px 10px;
+}
+.year-select select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.table-scroll { overflow-x: auto; margin-top: 16px; max-height: 640px; overflow-y: auto; }
+table.albums th, table.albums td { text-align: left; }
+table.albums thead th { position: sticky; top: 0; background: var(--surface); }
+table.albums .date { color: var(--pubdate); }
+table.albums .artist { white-space: normal; min-width: 10em; }
+table.albums .title { white-space: normal; min-width: 12em; font: italic 400 15px/1.4 var(--font-serif); }
+table.albums .title a { color: var(--heading); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+table.albums .title a:hover { text-decoration-color: var(--accent); }
+table.albums .reviewer { color: var(--text); }
+table.albums .score { text-align: right; font-weight: 600; }
+.tag {
+  margin-left: 8px; padding: 1px 6px; border: 1px solid var(--border); border-radius: 2px;
+  font: normal 600 10px/1.4 var(--font-sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--pubdate);
+  vertical-align: 2px;
+}
 table { border-collapse: collapse; width: 100%; font: 400 14px/1.43 var(--font-sans); font-variant-numeric: tabular-nums; }
 th, td { text-align: right; padding: 8px 12px; border-bottom: 1px solid var(--border-story); white-space: nowrap; }
 th:first-child { text-align: left; }

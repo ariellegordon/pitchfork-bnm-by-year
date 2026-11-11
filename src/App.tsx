@@ -6,6 +6,7 @@ import {
 import { useTheme } from "./palette.ts";
 import { YearChart, type Series } from "./components/YearChart.tsx";
 import { GenreFilter } from "./components/GenreFilter.tsx";
+import { AlbumList } from "./components/AlbumList.tsx";
 
 type View = "category" | "genre";
 type Scope = Category | "both";
@@ -47,6 +48,7 @@ export default function App() {
   const [scope, setScope] = useState<Scope>("album");
   const [showCat, setShowCat] = useState<Record<Category, boolean>>({ album: true, reissue: true });
   const [genres, setGenres] = useState<Set<string>>(new Set());
+  const [listYear, setListYear] = useState<number | "all" | null>(null); // null = latest year
 
   useEffect(() => { loadData().then(setData, (e) => setError(String(e.message ?? e))); }, []);
 
@@ -72,6 +74,28 @@ export default function App() {
     return { series: used, rows };
   }, [view, scope, showCat, filtered, years, slots, genres, theme]);
 
+  // Albums for the list: same selection the chart shows (genre chips + category toggles/scope).
+  const listCats: Category[] = view === "category"
+    ? (["album", "reissue"] as Category[]).filter((c) => showCat[c])
+    : scope === "both" ? ["album", "reissue"] : [scope];
+  const listCatKey = listCats.join();
+  const listed = useMemo(
+    () => filtered.filter((a) => listCatKey.split(",").includes(a.category)),
+    [filtered, listCatKey],
+  );
+  // Years that have at least one review under the current filters, with counts (newest first).
+  const listYears = useMemo(() => {
+    const counts = new Map<number, number>();
+    for (const a of listed) counts.set(a.year, (counts.get(a.year) ?? 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[0] - a[0]);
+  }, [listed]);
+  // Fall back to the latest matching year when the chosen one has no matches under the new filters.
+  const year: number | "all" = listYear === "all" ? "all"
+    : listYear != null && listYears.some(([y]) => y === listYear) ? listYear
+    : listYears[0]?.[0] ?? "all";
+  const [listOpen, setListOpen] = useState(false);
+  const selectYear = (y: number | "all") => { setListYear(y); setListOpen(true); };
+
   const totals = useMemo(() => {
     const t = { album: 0, reissue: 0 };
     for (const a of filtered) t[a.category]++;
@@ -89,8 +113,6 @@ export default function App() {
       </div>
     );
   }
-
-  const visibleRows = [...rows].reverse();
 
   return (
     <div className="site">
@@ -150,7 +172,8 @@ export default function App() {
                 ))}
           </div>
 
-          {series.length ? <YearChart rows={rows} series={series} stacked={view === "genre"} theme={theme} />
+          {series.length ? <YearChart rows={rows} series={series} stacked={view === "genre"} theme={theme}
+                selectedYear={year === "all" ? null : year} onSelectYear={selectYear} />
             : <p className="dek empty">Nothing to show for this selection.</p>}
 
           {view === "genre" && (
@@ -160,24 +183,9 @@ export default function App() {
             </p>
           )}
 
-          <details className="table-view">
-            <summary>Show as table</summary>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr><th scope="col">Year</th>{series.map((s) => <th scope="col" key={s.key}>{s.label}</th>)}</tr>
-                </thead>
-                <tbody>
-                  {visibleRows.map((r) => (
-                    <tr key={r.year}>
-                      <th scope="row">{r.year}</th>
-                      {series.map((s) => <td key={s.key}>{r[s.key]}</td>)}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </details>
+          <AlbumList albums={listed} years={listYears} year={year} onYearChange={selectYear}
+            open={listOpen} onToggle={setListOpen}
+            showCategory={listCats.length > 1} />
         </section>
       </main>
 
