@@ -28,7 +28,7 @@ function Masthead() {
   return (
     <header className="masthead">
       <div className="masthead-bar">
-        <span className="wordmark">BNM by Year</span>
+        <span className="wordmark">ForkCount</span>
         <span className="masthead-meta">Unofficial · data from pitchfork.com</span>
       </div>
       <nav className="subnav" aria-label="Source pages">
