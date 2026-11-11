@@ -100,7 +100,7 @@ export default function App() {
         <header className="page-head">
           <h1 className="page-hed">Best New Music by Year</h1>
           <p className="dek">
-            Every Best New Album and Best New Reissue, counted by the year the review was published.
+            Every Best New Album and Best New Reissue.
           </p>
           <p className="pubdate">
             Updated {new Date(data.scrapedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
