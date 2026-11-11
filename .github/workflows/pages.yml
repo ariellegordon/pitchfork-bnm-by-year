@@ -1,8 +1,10 @@
-name: Deploy to GitHub Pages
+name: Update data and deploy
 
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "0 14 * * 1" # Mondays 14:00 UTC: pick up last week's Best New Music
   workflow_dispatch:
 
 permissions:
@@ -12,11 +14,13 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false # don't kill a scrape halfway through its commit
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # commit refreshed data
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,6 +28,24 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+
+      # Scheduled and manual runs fetch new picks; plain pushes just redeploy.
+      - name: Scrape new Best New Music
+        if: github.event_name != 'push'
+        run: npm run scrape
+      - name: Commit updated data
+        if: github.event_name != 'push'
+        run: |
+          git add public/data/albums.json
+          if git diff --cached --quiet; then
+            echo "No new picks."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "Update Best New Music data"
+            git push
+          fi
+
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:

@@ -55,12 +55,21 @@ async function main() {
   console.log(full ? "Full scrape" : `Incremental scrape (${cached.length} cached)`);
 
   const byId = new Map(cached.map((a) => [a.id, a]));
+  let added = 0;
   for (const category of ["album", "reissue"] as const) {
     const known = new Set(cached.filter((a) => a.category === category).map((a) => a.id));
     const fresh = await scrapeCategory(category, known);
     for (const a of fresh) byId.set(a.id, a);
+    added += fresh.length;
     console.log(`${category}: +${fresh.length} new`);
     await sleep(DELAY_MS);
+  }
+
+  // Leave the file (and its scrapedAt) alone when nothing changed, so scheduled runs
+  // only produce a commit when there are new picks.
+  if (!full && added === 0) {
+    console.log(`No new entries; ${OUT} unchanged`);
+    return;
   }
 
   const albums = [...byId.values()].sort((a, b) => b.pubDate.localeCompare(a.pubDate));
