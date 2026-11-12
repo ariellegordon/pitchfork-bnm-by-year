@@ -59,3 +59,18 @@ export function countByYear(albums: Album[], years: number[], keys: string[], ke
   }
   return [...rows.values()];
 }
+
+const TOTAL = "__total";
+
+/** Records each year's distinct review count on its row. Use when a review can sit in
+ *  several series (genres), so summing the series would count it more than once. */
+export function withUniqueTotals(rows: Row[], albums: Album[]): Row[] {
+  const counts = new Map<number, number>();
+  for (const a of albums) counts.set(a.year, (counts.get(a.year) ?? 0) + 1);
+  return rows.map((r) => ({ ...r, [TOTAL]: counts.get(r.year) ?? 0 }));
+}
+
+/** The year total shown in the tooltip: distinct reviews if recorded, else the series sum. */
+export function yearTotal(row: Row, keys: string[]): number {
+  return typeof row[TOTAL] === "number" ? row[TOTAL] : keys.reduce((n, k) => n + (row[k] ?? 0), 0);
+}

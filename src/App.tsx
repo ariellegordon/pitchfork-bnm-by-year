@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  allGenres, bucketsFor, countByYear, genreSlots, loadData, matchesGenres, yearRange,
+  allGenres, bucketsFor, countByYear, genreSlots, loadData, matchesGenres, withUniqueTotals, yearRange,
   type Category, type DataFile,
 } from "./data.ts";
 import { useTheme } from "./palette.ts";
@@ -30,7 +30,6 @@ function Masthead() {
     <header className="masthead">
       <div className="masthead-bar">
         <span className="wordmark">ForkCount</span>
-        <span className="masthead-meta">Unofficial · data from pitchfork.com</span>
       </div>
       <nav className="subnav" aria-label="Source pages">
         <a href="https://pitchfork.com/reviews/best/albums/" target="_blank" rel="noreferrer">Best New Albums</a>
@@ -68,7 +67,7 @@ export default function App() {
     }
     const inScope = filtered.filter((a) => scope === "both" || a.category === scope);
     const series: Series[] = slots.map((g, i) => ({ key: g, label: g, color: theme.series[i] }));
-    const rows = countByYear(inScope, years, slots, (a) => bucketsFor(a, slots, genres));
+    const rows = withUniqueTotals(countByYear(inScope, years, slots, (a) => bucketsFor(a, slots, genres)), inScope);
     // Hide genres with no counts at all under the current filter (colors stay fixed per genre).
     const used = series.filter((s) => rows.some((r) => r[s.key] > 0));
     return { series: used, rows };

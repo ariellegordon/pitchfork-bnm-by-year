@@ -1,5 +1,5 @@
 import { Bar, BarChart, CartesianGrid, ReferenceArea, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { Row } from "../data.ts";
+import { yearTotal, type Row } from "../data.ts";
 import type { Theme } from "../palette.ts";
 
 export interface Series {
@@ -44,7 +44,7 @@ function ChartTooltip({ active, payload, label, series }: any) {
   if (!active || !payload?.length) return null;
   const row = payload[0].payload as Row;
   const shown = (series as Series[]).filter((s) => row[s.key] > 0).reverse();
-  const total = (series as Series[]).reduce((n, s) => n + (row[s.key] ?? 0), 0);
+  const total = yearTotal(row, (series as Series[]).map((s) => s.key));
   return (
     <div className="tooltip">
       <div className="tooltip-title">{label}</div>
