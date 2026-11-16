@@ -1,6 +1,22 @@
 {
- "scrapedAt": "2026-11-11T20:00:15.692Z",
+ "scrapedAt": "2026-11-16T23:06:31.695Z",
  "albums": [
+  {
+   "id": "6af5f4418ecbac71e40b8e0e",
+   "category": "album",
+   "artist": "Armand Hammer",
+   "title": "Snakes & Ladders",
+   "url": "https://pitchfork.com/reviews/albums/armand-hammer-snakes-and-ladders/",
+   "pubDate": "2026-11-13T05:03:00.000Z",
+   "year": 2026,
+   "genres": [
+    "Rap"
+   ],
+   "score": 8.3,
+   "reviewers": [
+    "Andre Gee"
+   ]
+  },
   {
    "id": "6aedee5bc1e973346d7a4d7a",
    "category": "reissue",
