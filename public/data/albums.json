@@ -1,6 +1,22 @@
 {
- "scrapedAt": "2026-11-16T23:06:31.695Z",
+ "scrapedAt": "2026-11-24T01:21:44.179Z",
  "albums": [
+  {
+   "id": "6b00548e6f30fddce8dc082f",
+   "category": "album",
+   "artist": "Atlas Sound",
+   "title": "Thanatos",
+   "url": "https://pitchfork.com/reviews/albums/atlas-sound-thanatos/",
+   "pubDate": "2026-11-23T05:02:00.000Z",
+   "year": 2026,
+   "genres": [
+    "Rock"
+   ],
+   "score": 8.5,
+   "reviewers": [
+    "Andy Cush"
+   ]
+  },
   {
    "id": "6af5f4418ecbac71e40b8e0e",
    "category": "album",
